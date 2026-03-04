@@ -11,10 +11,21 @@ router = APIRouter(tags=['Foods'], prefix='/foods')
 
 # pagination get food
 @router.get('/')
-def get_food(db = Depends(get_db)):
+def get_food(category_id: int = None, db = Depends(get_db)):
+    if category_id is not None:
+        category_exist = db.execute(select(Category).where(Category.id == category_id)).scalar()
+        if not category_exist:
+            raise HTTPException(404, 'Category not found!')
+
+        query = select(Food).options(selectinload(Food.category)).where(Food.category_id == category_id)
+        result = db.execute(query).scalars().all()
+        return result
+
     food = db.execute(select(Food).options(selectinload(Food.category))).scalars().all()
+
     if not food:
-        raise HTTPException(400, "There is not any food !")
+        raise HTTPException(404, "There is no food at all!")
+
     return food
 
 @router.post('/')
@@ -49,13 +60,13 @@ def update_food(food_id: int, data: UpdateFood, db = Depends(get_db)):
     return food
 
 @router.put('/status/{food_id}')
-def status_update(food_id: int, data:UpdateFood, db = Depends(get_db)):
+def status_update(food_id: int, db = Depends(get_db)):
     food = db.get(Food, food_id)
     if not food:
         raise HTTPException(404, "Food not found")
     food.is_stock = False
     db.commit()
-    return "Stock updated"
+    return "Food's stock updated"
 
 
 @router.delete('/{food_id}')

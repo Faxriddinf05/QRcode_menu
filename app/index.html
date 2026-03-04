@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Control Panel</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="logo">🍕 FastFood Admin</div>
+            <nav id="category-list">
+                <div class="nav-item active" onclick="loadFood(); selectCategory(this)">Все блюда</div>
+                </nav>
+            <button class="add-main-btn" onclick="openModal('food-modal')">＋ Новое блюдо</button>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-bar">
+                <h2 id="current-category-name">Все меню</h2>
+                <div class="stats" id="stats-info">Загрузка...</div>
+            </header>
+
+            <div id="food-grid" class="food-grid">
+                </div>
+        </main>
+    </div>
+
+    <div id="food-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="modal-title">Добавить блюдо</h2>
+            <form id="food-form">
+                <input type="hidden" id="edit-id">
+                <div class="input-group">
+                    <label>Название</label>
+                    <input type="text" id="name" placeholder="Например: Чизбургер" required>
+                </div>
+                <div class="input-group">
+                    <label>Цена (сум)</label>
+                    <input type="number" id="price" required>
+                </div>
+                <div class="input-group">
+                    <label>URL картинки</label>
+                    <input type="text" id="image" placeholder="http://...">
+                </div>
+                <div class="input-group">
+                    <label>Категория</label>
+                    <select id="category_select" required></select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeModal('food-modal')">Отмена</button>
+                    <button type="submit" class="btn-save">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "http://127.0.0.1:8000";
+
+        // Помощники для модалок
+        function openModal(id, editData = null) {
+            document.getElementById(id).style.display = 'flex';
+            if (editData) {
+                document.getElementById('modal-title').innerText = "Редактировать";
+                document.getElementById('edit-id').value = editData.id;
+                document.getElementById('name').value = editData.name;
+                document.getElementById('price').value = editData.price;
+                document.getElementById('image').value = editData.image;
+                document.getElementById('category_select').value = editData.category_id;
+            } else {
+                document.getElementById('modal-title').innerText = "Новое блюдо";
+                document.getElementById('food-form').reset();
+                document.getElementById('edit-id').value = "";
+            }
+        }
+
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        function selectCategory(el) {
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            el.classList.add('active');
+            document.getElementById('current-category-name').innerText = el.innerText;
+        }
+
+        // Загрузка категорий
+        async function loadCategories() {
+            const res = await fetch(`${API_URL}/category/`);
+            const cats = await res.json();
+            const nav = document.getElementById('category-list');
+            const select = document.getElementById('category_select');
+
+            cats.forEach(c => {
+                const item = document.createElement('div');
+                item.className = 'nav-item';
+                item.innerText = c.name;
+                item.onclick = () => { loadFood(c.id); selectCategory(item); };
+                nav.appendChild(item);
+
+                const opt = document.createElement('option');
+                opt.value = c.id; opt.innerText = c.name;
+                select.appendChild(opt);
+            });
+        }
+
+        // Загрузка еды
+        async function loadFood(catId = null) {
+            let url = `${API_URL}/foods/` + (catId ? `?category_id=${catId}` : "");
+            const res = await fetch(url);
+            const data = await res.json();
+            const grid = document.getElementById('food-grid');
+            grid.innerHTML = "";
+
+            document.getElementById('stats-info').innerText = `Найдено: ${data.length || 0}`;
+
+            data.forEach(f => {
+                const card = document.createElement('div');
+                card.className = `food-card ${!f.is_stock ? 'out' : ''}`;
+                card.innerHTML = `
+                    <div class="card-img" style="background-image: url('${f.image}')">
+                        <div class="card-overlay">
+                            <button onclick='editFood(${JSON.stringify(f)})'>✏️</button>
+                            <button onclick="deleteFood(${f.id})">🗑️</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h3>${f.name}</h3>
+                        <p class="card-price">${f.price.toLocaleString()} сум</p>
+                        <button class="status-btn" onclick="toggleStatus(${f.id})">
+                            ${f.is_stock ? "В наличии" : "Нет в наличии"}
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // POST / PUT
+        document.getElementById('food-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('edit-id').value;
+            const data = {
+                name: document.getElementById('name').value,
+                price: parseInt(document.getElementById('price').value),
+                image: document.getElementById('image').value,
+                category_id: parseInt(document.getElementById('category_select').value)
+            };
+
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `${API_URL}/foods/${id}` : `${API_URL}/foods/`;
+
+            await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            closeModal('food-modal');
+            loadFood();
+        };
+
+        async function deleteFood(id) {
+            if(confirm("Удалить?")) {
+                await fetch(`${API_URL}/foods/${id}`, { method: 'DELETE' });
+                loadFood();
+            }
+        }
+
+        async function toggleStatus(id) {
+            await fetch(`${API_URL}/foods/status/${id}`, { method: 'PUT' });
+            loadFood();
+        }
+
+        function editFood(obj) { openModal('food-modal', obj); }
+
+        loadCategories();
+        loadFood();
+    </script>
+</body>
+</html>
