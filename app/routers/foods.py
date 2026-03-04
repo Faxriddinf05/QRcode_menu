@@ -48,6 +48,15 @@ def update_food(food_id: int, data: UpdateFood, db = Depends(get_db)):
     db.refresh(food)
     return food
 
+@router.put('/status/{food_id}')
+def status_update(food_id: int, data:UpdateFood, db = Depends(get_db)):
+    food = db.get(Food, food_id)
+    if not food:
+        raise HTTPException(404, "Food not found")
+    food.is_stock = False
+    db.commit()
+    return "Stock updated"
+
 
 @router.delete('/{food_id}')
 def delete_food(food_id: int, db = Depends(get_db)):
