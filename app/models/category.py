@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Mapped, mapped_column,relationship
 from app.db.base import Base
 from typing import List
+from app.models.foods import Food
 
 class Category(Base):
     __tablename__ = 'category'
