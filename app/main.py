@@ -4,7 +4,7 @@ from app.routers.category import router as category_router
 from app.routers.foods import router as food_router
 
 
-app = FastAPI(title='QR code menu', docs_url='/')
+app = FastAPI(title='QR code menu', docs_url='/docs')
 
 app.add_middleware(
     CORSMiddleware,

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Panel — QR Menu</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="admin.css" />
+</head>
+
+<body>
+
+    <!-- ═══ SIDEBAR ═══ -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <span>🍽️</span>
+            <span class="sname">QR<b>Menu</b></span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#categories" class="nav-item active" data-section="categories">
+                <span class="nav-icon">🗂</span> Categories
+            </a>
+            <a href="#foods" class="nav-item" data-section="foods">
+                <span class="nav-icon">🍔</span> Foods
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="index.html" class="view-menu-link">← View Menu</a>
+        </div>
+    </aside>
+
+    <!-- ═══ MAIN CONTENT ═══ -->
+    <div class="admin-main">
+
+        <!-- Top bar -->
+        <div class="topbar">
+            <div>
+                <h1 class="topbar-title" id="pageTitle">Categories</h1>
+                <p class="topbar-sub" id="pageSub">Manage your menu categories</p>
+            </div>
+            <button class="btn-primary" id="addBtn">+ Add Category</button>
+        </div>
+
+        <!-- ─── CATEGORIES SECTION ─── -->
+        <section id="section-categories" class="section active">
+            <div class="table-wrap">
+                <table class="data-table" id="categoryTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Foods</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="categoryBody">
+                        <tr>
+                            <td colspan="5" class="loading-row">Loading…</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ─── FOODS SECTION ─── -->
+        <section id="section-foods" class="section" style="display:none">
+            <div class="table-wrap">
+                <table class="data-table" id="foodTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Image</th>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Price</th>
+                            <th>Stock</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="foodBody">
+                        <tr>
+                            <td colspan="7" class="loading-row">Loading…</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- ════════════════════════════════
+       MODALS
+  ════════════════════════════════ -->
+
+    <!-- Category Modal -->
+    <div class="modal-overlay" id="categoryModal">
+        <div class="modal">
+            <div class="modal-head">
+                <h3 id="catModalTitle">Add Category</h3>
+                <button class="modal-x" data-close="categoryModal">✕</button>
+            </div>
+            <form id="categoryForm">
+                <input type="hidden" id="catId" />
+                <div class="field">
+                    <label for="catName">Name <span class="req">*</span></label>
+                    <input id="catName" type="text" placeholder="e.g. Burgers" required />
+                </div>
+                <div class="field">
+                    <label for="catDesc">Description <span class="req">*</span></label>
+                    <input id="catDesc" type="text" placeholder="e.g. Juicy beef burgers" required />
+                </div>
+                <div class="modal-foot">
+                    <button type="button" class="btn-ghost" data-close="categoryModal">Cancel</button>
+                    <button type="submit" class="btn-primary" id="catSaveBtn">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Food Modal -->
+    <div class="modal-overlay" id="foodModal">
+        <div class="modal">
+            <div class="modal-head">
+                <h3 id="foodModalTitle">Add Food</h3>
+                <button class="modal-x" data-close="foodModal">✕</button>
+            </div>
+            <form id="foodForm">
+                <input type="hidden" id="foodId" />
+                <div class="field">
+                    <label for="foodName">Name <span class="req">*</span></label>
+                    <input id="foodName" type="text" placeholder="e.g. Classic Burger" required />
+                </div>
+                <div class="field">
+                    <label for="foodPrice">Price (UZS) <span class="req">*</span></label>
+                    <input id="foodPrice" type="number" placeholder="e.g. 35000" min="1" required />
+                </div>
+                <div class="field">
+                    <label for="foodImage">Image URL</label>
+                    <input id="foodImage" type="text" placeholder="https://…" />
+                </div>
+                <div class="field">
+                    <label for="foodCat">Category <span class="req">*</span></label>
+                    <select id="foodCat" required></select>
+                </div>
+                <div class="modal-foot">
+                    <button type="button" class="btn-ghost" data-close="foodModal">Cancel</button>
+                    <button type="submit" class="btn-primary" id="foodSaveBtn">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirm Modal -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal modal-sm">
+            <div class="modal-head">
+                <h3>Confirm Delete</h3>
+                <button class="modal-x" data-close="deleteModal">✕</button>
+            </div>
+            <p class="del-msg" id="delMsg">Are you sure?</p>
+            <div class="modal-foot">
+                <button class="btn-ghost" data-close="deleteModal">Cancel</button>
+                <button class="btn-danger" id="confirmDelBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script src="admin.js"></script>
+</body>
+
+</html>

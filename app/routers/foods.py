@@ -11,22 +11,35 @@ router = APIRouter(tags=['Foods'], prefix='/foods')
 
 # pagination get food
 @router.get('/')
-def get_food(category_id: int = None, db = Depends(get_db)):
-    if category_id is not None:
-        category_exist = db.execute(select(Category).where(Category.id == category_id)).scalar()
-        if not category_exist:
-            raise HTTPException(404, 'Category not found!')
+def get_food(food_id:int = None, category_id: int = None, db = Depends(get_db)):
+    if category_id:
+        result = select(Food).options(selectinload(Food.category)).where(Food.category)
+        return db.execute(result).scalars().all()
+    if food_id:
+        result = select(Food).options(selectinload(Food.category)).where(Food.id == food_id)
+        return db.execute(result).scalars().first()
+    else:
+        result = select(Food).options(selectinload(Food.category))
+        return db.execute(result).scalars().all()
+    
 
-        query = select(Food).options(selectinload(Food.category)).where(Food.category_id == category_id)
-        result = db.execute(query).scalars().all()
-        return result
 
-    food = db.execute(select(Food).options(selectinload(Food.category))).scalars().all()
 
-    if not food:
-        raise HTTPException(404, "There is no food at all!")
-
-    return food
+    # if category_id is not None:
+    #     category_exist = db.execute(select(Category).where(Category.id == category_id)).scalar()
+    #     if not category_exist:
+    #         raise HTTPException(404, 'Category not found!')
+    #
+    #     query = select(Food).options(selectinload(Food.category)).where(Food.category_id == category_id)
+    #     result = db.execute(query).scalars().all()
+    #     return result
+    #
+    # food = db.execute(select(Food).options(selectinload(Food.category))).scalars().all()
+    #
+    # if not food:
+    #     raise HTTPException(404, "There is no food at all!")
+    #
+    # return food
 
 @router.post('/')
 def create_food(data: CreateFood, db = Depends(get_db)):
@@ -46,7 +59,7 @@ def create_food(data: CreateFood, db = Depends(get_db)):
         return obj
 
 
-@router.put('{food_id}')
+@router.put('/{food_id}')
 def update_food(food_id: int, data: UpdateFood, db = Depends(get_db)):
     food = db.get(Food, food_id)
     if not food:
