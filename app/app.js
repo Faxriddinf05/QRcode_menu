@@ -70,6 +70,7 @@ function renderFoods(foods) {
         const card = document.createElement('article');
         card.className = 'card';
         card.style.animationDelay = `${i * 0.05}s`;
+        card.style.cursor = 'pointer';
         const inStock = food.is_stock !== false;
         let imgHtml = food.image
             ? `<img src="${esc(food.image)}" alt="${esc(food.name)}" loading="lazy"
@@ -91,9 +92,47 @@ function renderFoods(foods) {
           <span class="price-val">${fmtPrice(food.price)}</span>
         </div>
       </div>`;
+
+        // Open detail modal on click
+        card.addEventListener('click', () => openDetailModal(food));
         gridEl.appendChild(card);
     });
 }
+
+// ── Food Detail Modal ─────────────────────────────────
+const detailModal = document.getElementById('foodDetailModal');
+const detailClose = document.getElementById('detailClose');
+
+function openDetailModal(food) {
+    const inStock = food.is_stock !== false;
+
+    // Image
+    document.getElementById('detailImgWrap').innerHTML = food.image
+        ? `<img src="${esc(food.image)}" alt="${esc(food.name)}"
+         onerror="this.parentElement.innerHTML='<div class=detail-img-placeholder>🍴</div>'">`
+        : `<div class="detail-img-placeholder">🍴</div>`;
+
+    // Text fields
+    document.getElementById('detailCat').textContent = food.catName;
+    document.getElementById('detailName').textContent = food.name;
+    document.getElementById('detailPrice').textContent = fmtPrice(food.price);
+    document.getElementById('detailCatName').textContent = food.catName;
+    document.getElementById('detailId').textContent = `#${food.id}`;
+    document.getElementById('detailStock').innerHTML =
+        `<span class="${inStock ? 'badge-in' : 'badge-out'}">${inStock ? 'In Stock' : 'Out of Stock'}</span>`;
+
+    detailModal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeDetailModal() {
+    detailModal.classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+detailClose.addEventListener('click', closeDetailModal);
+detailModal.addEventListener('click', e => { if (e.target === detailModal) closeDetailModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetailModal(); });
 
 // ── Helpers ───────────────────────────────────────────
 function showState(icon, title, msg) {

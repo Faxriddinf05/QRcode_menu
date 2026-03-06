@@ -82,6 +82,36 @@
     <!-- FOOTER -->
     <footer><span>© 2025 QRMenu · Built with FastAPI 🚀</span></footer>
 
+    <!-- ── FOOD DETAIL MODAL ── -->
+    <div class="modal-overlay" id="foodDetailModal">
+        <div class="detail-modal">
+            <button class="detail-close" id="detailClose">✕</button>
+            <div class="detail-img-wrap" id="detailImgWrap"></div>
+            <div class="detail-body">
+                <div class="detail-cat" id="detailCat"></div>
+                <h2 class="detail-name" id="detailName"></h2>
+                <div class="detail-rows">
+                    <div class="detail-row">
+                        <span class="detail-label">Price</span>
+                        <span class="detail-value accent" id="detailPrice"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Stock Status</span>
+                        <span id="detailStock"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Category</span>
+                        <span class="detail-value" id="detailCatName"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Food ID</span>
+                        <span class="detail-value muted" id="detailId"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="app.js"></script>
 </body>
 
